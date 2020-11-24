@@ -133,3 +133,8 @@ dmypy.json
 *.h5
 *.hdf5
 *.he5
+
+# ignore CIFAR
+/DATA/CIFAR_10/train/*.npy
+/DATA/CIFAR_10/validation/*.npy
+/DATA/CIFAR_10/test/*.npy
