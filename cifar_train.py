@@ -12,19 +12,23 @@ import os
 
 
 # Set Log Level
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
+# Seed for Reproducability 
+SEED = 123
+np.random.seed(SEED)
+tf.random.set_seed(SEED)
 
 
 def parse_args():
     parser = argparse.ArgumentParser() 
     # hyperparameters sent by the client are passed as command-line arguments to the script
     parser.add_argument('--epochs', type=int, default=1)
-    
     parser.add_argument('--data', type=str, default=os.environ.get('SM_CHANNEL_DATA'))
     parser.add_argument('--output', type=str, default=os.environ.get('SM_CHANNEL_OUTPUT'))
     parser.add_argument('--train', type=str, default=os.environ.get('SM_CHANNEL_TRAIN'))
     parser.add_argument('--val', type=str, default=os.environ.get('SM_CHANNEL_VAL'))
+    parser.add_argument('--test', type=str, default=os.environ.get('SM_CHANNEL_TEST'))
     parser.add_argument('--model_dir', type=str, default=os.environ.get('SM_MODEL_DIR'))
     return parser.parse_known_args()
 
@@ -32,15 +36,22 @@ def parse_args():
 def get_train_data(train_dir):
     X_train = np.load(os.path.join(train_dir, 'X_train.npy'))
     y_train = np.load(os.path.join(train_dir, 'y_train.npy'))
-    print('X train', X_train.shape, 'y train', y_train.shape)
+    print(f'X_train: {X_train.shape} | y_train: {y_train.shape}')
     return X_train, y_train
 
 
 def get_validation_data(val_dir):
     X_validation = np.load(os.path.join(val_dir, 'X_validation.npy'))
     y_validation = np.load(os.path.join(val_dir, 'y_validation.npy'))
-    print('X validation', X_validation.shape, 'y validation', y_validation.shape)
+    print(f'X_validation: {X_validation.shape} | y_validation:  {y_validation.shape}')
     return X_validation, y_validation
+
+
+def get_test_data(test_dir):
+    X_test = np.load(os.path.join(test_dir, 'X_test.npy'))
+    y_test = np.load(os.path.join(test_dir, 'y_test.npy'))
+    print(f'X_test: {X_test.shape} | y_test:  {y_test.shape}')
+    return X_test, y_test
 
 
 if __name__ == '__main__':
@@ -51,6 +62,8 @@ if __name__ == '__main__':
     # Load Data
     X_train, y_train = get_train_data(args.train)
     X_validation, y_validation = get_validation_data(args.val)
+    X_test, y_test = get_test_data(args.test)
+    
     with tf.device(DEVICE):
         # Data Augmentation
         TRAIN_BATCH_SIZE = 32
@@ -94,5 +107,8 @@ if __name__ == '__main__':
                   callbacks=[], 
                   verbose=2, 
                   shuffle=True)
+        # Evaluate on Test Set
+        result = model.evaluate(X_test, y_test, verbose=1)
+        print(f'Test Accuracy: {result[1]}')
         # Save Model
         model.save(f'{args.model_dir}/1')
