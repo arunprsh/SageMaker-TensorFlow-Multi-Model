@@ -5,7 +5,6 @@ from tensorflow.keras.models import Sequential
 from tensorflow.keras.models import load_model
 from tensorflow.keras import utils
 import tensorflow as tf
-import pandas as pd
 import numpy as np
 import argparse
 import os

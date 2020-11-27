@@ -8,17 +8,18 @@ from tensorflow.keras.preprocessing import image
 from tensorflow.keras.applications import vgg16
 from sklearn.metrics import confusion_matrix
 from tensorflow.keras.models import Model
-from subprocess import call
 import tensorflow as tf
-import pandas as pd
 import numpy as np
-import itertools
 import argparse
 import os
 
 
 # Set Log Level
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+
+SEED = 123
+np.random.seed(SEED)
+tf.random.set_seed(SEED)
 
 
 def parse_args():
@@ -34,6 +35,7 @@ def parse_args():
 
 
 if __name__ == '__main__':
+    print(f'Using TensorFlow version: {tf.__version__}')
     args, _ = parse_args()
     epochs = args.epochs
     device = '/cpu:0'
